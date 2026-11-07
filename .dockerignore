@@ -1,0 +1,12 @@
+.git
+.github
+.agents
+**/node_modules
+**/.next
+**/.turbo
+**/.env
+**/.env.*
+!**/.env.example
+.woodpecker.yaml
+*.md
+!docker/*.md
