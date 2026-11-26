@@ -24,17 +24,19 @@ const rid = (prefix) => {
 };
 
 const p = new PrismaClient();
-const passwordHash = await bcrypt.hash(password, 12);
+const resetPassword = process.env.RESET_ADMIN_PASSWORD === "true";
+const hashPassword = () => bcrypt.hash(password, 12);
 
 let user = await p.user.findUnique({ where: { email } });
 if (!user) {
   user = await p.user.create({
-    data: { id: rid("user_"), email, name: process.env.DUB_ADMIN_NAME || "Admin", emailVerified: new Date(), passwordHash, defaultWorkspace: slug },
+    data: { id: rid("user_"), email, name: process.env.DUB_ADMIN_NAME || "Admin", emailVerified: new Date(), passwordHash: await hashPassword(), defaultWorkspace: slug },
   });
 } else {
+  // an existing admin keeps their password unless a reset is explicitly requested
   await p.user.update({
     where: { id: user.id },
-    data: { passwordHash, emailVerified: user.emailVerified ?? new Date(), invalidLoginAttempts: 0, lockedAt: null },
+    data: { ...(resetPassword && { passwordHash: await hashPassword() }), emailVerified: user.emailVerified ?? new Date(), invalidLoginAttempts: 0, lockedAt: null },
   });
 }
 

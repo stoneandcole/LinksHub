@@ -78,7 +78,8 @@ Analytics (optional; without `TINYBIRD_API_KEY`, click events are not sent to Ti
 
 First-run seed (read by `seed.mjs`):
 
-- `DUB_ADMIN_EMAIL`, `DUB_ADMIN_PASSWORD`: the seed is skipped unless both are set
+- `DUB_ADMIN_EMAIL`, `DUB_ADMIN_PASSWORD`: the seed is skipped unless both are set. The password is used only when the admin user is first created, or when a reset is requested
+- `RESET_ADMIN_PASSWORD` (optional): set to `true` to reset an existing admin's password to `DUB_ADMIN_PASSWORD`. It applies on every deploy while set, so remove it after the reset
 - `DUB_ADMIN_NAME`
 - `DUB_WORKSPACE_SLUG`, `DUB_WORKSPACE_NAME`
 - `DUB_SHORT_DOMAIN`
@@ -93,7 +94,7 @@ For other optional integrations, see `apps/web/.env.example`.
 
 ## Post-deploy behaviour
 
-`sh /app/post-deploy.sh` runs `prisma db push`, then `seed.mjs`. On **every** deploy, the seed resets the admin user's password to `DUB_ADMIN_PASSWORD`, clears any account lock, and rewrites the workspace limits.
+`sh /app/post-deploy.sh` runs `prisma db push`, then `seed.mjs`. The seed sets the admin password to `DUB_ADMIN_PASSWORD` when it creates the admin user. An existing admin keeps their password on redeploy, unless `RESET_ADMIN_PASSWORD` is `true`. On **every** deploy, the seed still clears any account lock and rewrites the workspace limits.
 
 ## Request authentication
 
