@@ -1,0 +1,48 @@
+# Foundry (CI) pipeline for LinksHub. Needs a runner with >= 8 GB RAM free
+# (build uses NODE_OPTIONS=--max-old-space-size=6144).
+labels:
+  environment: staging
+
+when:
+  - event: pull_request
+  - event: push
+    branch: [main, staging]
+
+variables:
+  - &build_args
+    APP_HOST: qr.stoneandcole.com
+    SHORT_HOST: go.stoneandcole.com
+  # PLACEHOLDER: registry and repo path not decided yet (Granite chooses).
+  - &registry REGISTRY
+  - &repo REGISTRY/linkshub
+
+steps:
+  - name: build
+    image: woodpeckerci/plugin-docker-buildx
+    when:
+      - event: pull_request
+    settings:
+      dry_run: true
+      repo: *repo
+      registry: *registry
+      dockerfile: docker/Dockerfile
+      context: .
+      tags: [ci-${CI_COMMIT_SHA}]
+      build_args: *build_args
+
+  - name: build-push
+    image: woodpeckerci/plugin-docker-buildx
+    when:
+      - event: push
+        branch: [main, staging]
+    settings:
+      repo: *repo
+      registry: *registry
+      dockerfile: docker/Dockerfile
+      context: .
+      tags: [ "${CI_COMMIT_SHA}", "${CI_COMMIT_BRANCH}" ]
+      build_args: *build_args
+      username:
+        from_secret: registry_user
+      password:
+        from_secret: registry_password
